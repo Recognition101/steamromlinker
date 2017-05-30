@@ -1,0 +1,32 @@
+{
+    "env": {
+        "browser": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "impliedStrict": true,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+        "comma-dangle": "off",
+        "quotes": ["error", "single", { "allowTemplateLiterals": true}],
+        "semi": "error",
+        "indent": ["error", 4],
+        "no-mixed-spaces-and-tabs": "error",
+        "strict": "error",
+        "max-len": ["error", 80],
+        "prefer-const": "error",
+        "no-console": "error",
+        "no-const-assign": "error",
+        "no-empty": ["error", { "allowEmptyCatch": true }],
+        "no-undef": "error",
+        "no-unused-vars": "off",
+        "no-var": "error",
+        "no-extend-native": "error",
+        "eqeqeq": "error"
+    }
+}
