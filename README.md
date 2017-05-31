@@ -18,6 +18,7 @@ parent/
     │   └── images/
     │       ├── Chrono Trigger.png
     |       └── Super Mario World.png
+    |
     └── N64/
         ├── Mario Party.z64
         └── images/
