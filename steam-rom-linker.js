@@ -93,11 +93,11 @@ const getImagePath = romPath => {
  */
 const loadImage = (emulator, romPath) => {
     const existingImgFn = getImagePath(romPath);
-    const apiUrl = 'http://consolegrid.com/api/top_picture';
     const dir = path.join(configDir, emulator.directory, 'images');
     const romNoExt = path.basename(romPath, path.extname(romPath));
     const encSys = encodeURIComponent(emulator.console);
     const encRom = encodeURIComponent(getRomName(romPath));
+    const logName = emulator.console + ' / ' + romNoExt;
 
     if (existingImgFn) {
         return Promise.resolve(existingImgFn);
@@ -105,18 +105,40 @@ const loadImage = (emulator, romPath) => {
 
     try { fs.mkdirSync(dir); } catch(e) {}
 
-    console.log('Downloading image: ' + emulator.console + ', ' + romNoExt);
-    return fetch(`${apiUrl}?console=${encSys}&game=${encRom}`)
-    .then(response => response.text())
-    .then(url => url && url.startsWith('http') ? fetch(url) : null)
-    .then(res => res
-        ? new Promise(yes => {
+    const writeImage = res => (
+        res && new Promise(yes => {
             const imgFn = path.join(dir, romNoExt + path.extname(res.url));
             const dest = fs.createWriteStream(imgFn);
             res.body.pipe(dest).on('end', () => yes(imgFn));
+        }));
+
+    const loadImageConsoleGrid = () => {
+        console.log('Downloading image from Console Grid:  ' + logName);
+        const apiUrl = 'http://consolegrid.com/api/top_picture';
+
+        return fetch(`${apiUrl}?console=${encSys}&game=${encRom}`)
+        .then(response => response.text())
+        .then(url => url && url.startsWith('http') ? fetch(url) : null)
+        .then(writeImage);
+    };
+
+    const loadImageSteamBanners = () => {
+        console.log('Downloading image from Steam Banners: ' + logName);
+        const apiUrl = 'http://steambanners.booru.org/index.php';
+        const imgUrl = 'http://img.booru.org/steambanners//images';
+        const htmlParser = /<img.*?(\d+)\/thumbnail_([^"]*)/;
+
+        return fetch(`${apiUrl}?page=post&s=list&tags=${encRom}`)
+        .then(response => response.text())
+        .then(html => {
+            const [, bin, imgFn] = html.match(htmlParser) || [];
+            return imgFn ? fetch(imgUrl + '/' + bin + '/' + imgFn) : null;
         })
-        : null
-    );
+        .then(writeImage);
+    };
+
+    return loadImageConsoleGrid()
+        .then(imgFn => imgFn ? imgFn : loadImageSteamBanners());
 };
 
 /**
